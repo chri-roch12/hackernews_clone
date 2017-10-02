@@ -1,34 +1,14 @@
 import React, { Component } from 'react';
 import './App.css';
 
-//test data for App Component
-const list = [
-  {
-    title: 'React',
-    url: 'https://facebook.github.io/react/',
-    author: 'Jordan Walke',
-    num_comments: 3,
-    points: 4,
-    objectID: 0,
-  },
-  {
-    title: 'Redux',
-    url: 'https://github.com/reactjs/redux',
-    author: 'Dan Abramov, Andrew Clark',
-    num_comments: 2,
-    points: 5,
-    objectID: 1,
-  },
-  {
-    title: 'Fake',
-    url: 'https://news.ycombinator.com/',
-    author: 'et al.',
-    num_comments: 5,
-    points: 4,
-    objectID: 2,
-  },
-];
+/* API request broken down to url constants and default parameters for
+url composition flexibilty in the future
+*/
+const DEFAULT_QUERY = 'redux';
 
+const PATH_BASE = 'https://hn.algolia.com/api/v1';
+const PATH_SEARCH = '/search';
+const PARAM_SEARCH = 'query=';
 
       //High order function example, ES5
 /*
@@ -108,17 +88,39 @@ class App extends Component {
     super(props);
 
     this.state = {
-      list,
-      searchTerm: '',
+      default: null,
+      searchTerm: DEFAULT_QUERY,
     };
 
+    //Bind setSearchTopstories() method to Component constructor
+    this.setSearchTopstories = this.setSearchTopstories.bind(this);
+    //Bind fetchSeachTopstories() method to Component constructor
+    this.fetchSeachTopstories = this.fetchSeachTopstories.bind(this);
     //Bind onDismiss() method to Component constructor
     this.onDismiss = this.onDismiss.bind(this);
-
     //Bind OnSearchChange() method to Component constructor
     this.onSearchChange = this.onSearchChange.bind(this);
   }
-    //Shoehorn the onDismiss() action into constructor.
+
+    //Define the setSearchTopstories() action for constructor.
+  setSearchTopstories(result) {
+    this.setState({ result });
+  }
+
+  fetchSeachTopstories(searchTerm) {
+    fetch(`${PATH_BASE}${PATH_SEARCH}${PARAM_SEARCH}${searchTerm}`)
+      .then(response => response.json())
+      .then(result => this.setSearchTopstories(result))
+      .catch(e => e);
+  }
+
+  componentDidMount() {
+    const { searchTerm } = this.state;
+    this.fetchSeachTopstories(searchTerm);
+  }
+
+
+    //Define the onDismiss() action for constructor.
   onDismiss(id) {
     const isNotId = item => item.objectID !== id;
     const updatedList = this.state.list.filter(isNotId);
