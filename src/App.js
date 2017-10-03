@@ -1,4 +1,5 @@
 import React, { Component } from 'react';
+import PropTypes from 'prop-types';
 import './App.css';
 
 /* API request broken down to url constants and default parameters for
@@ -13,21 +14,6 @@ const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
 const PARAM_PAGE = 'page=';
 const PARAM_HPP = 'hitsPerPage=';
-
-      //High order function example for client-side search, ES5
-/*
-function isSearched(searchTerm) {
-  return function(item) {
-    return !searchTerm ||
-    item.title.toLowerCase().includes(searchTerm.toLowerCase());
-  }
-}
-
-
-    //Same functionality as above, via ES6
-const isSearched = (searchTerm) => (item) =>
-  !searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase());
-*/
 
 /*
 search Component, note that => removes need for
@@ -51,9 +37,19 @@ const Search = ({
     </button>
   </form>
 
+//Search property testing
+
+Search.PropTypes = {
+  value: PropTypes.string,
+  onChange: PropTypes.func.isRequired,
+  onSubmit: PropTypes.func.isRequired,
+  children: PropTypes.node.isRequired
+
+}
+
 //table Component
 
-const Table = ({ list, pattern, onDismiss }) =>
+const Table = ({ list, onDismiss }) =>
 
   <div className="table">
     { list.map(item =>
@@ -82,9 +78,24 @@ const Table = ({ list, pattern, onDismiss }) =>
     )}
   </div>
 
+// Table property testing
+
+Table.PropTypes = {
+  list: PropTypes.arrayOf(
+    PropTypes.shape({
+      objectID: PropTypes.string.isRequired,
+      author: PropTypes.string,
+      url: PropTypes.string,
+      num_comments: PropTypes.number,
+      points: PropTypes.number,
+    })
+  ).isRequired,
+  onDismiss: PropTypes.func.isRequired
+}
+
 //button Component
 
-const Button = ({ onClick, className='', children }) =>
+const Button = ({ onClick, className, children }) =>
   <button
     onClick={onClick}
     className={className}
@@ -93,6 +104,17 @@ const Button = ({ onClick, className='', children }) =>
     {children}
   </button>
 
+Button.defaultProps = {
+  className: '',
+};
+
+// Button property testing
+
+Button.PropTypes = {
+  onClick: PropTypes.func.isRequired,
+  className: PropTypes.string,
+  children: PropTypes.node.isRequired
+}
 
 class App extends Component {
     //Add state(s), ES6 Object initializer shorthand
