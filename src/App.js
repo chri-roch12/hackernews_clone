@@ -5,12 +5,16 @@ import './App.css';
 url composition flexibilty in the future
 */
 const DEFAULT_QUERY = 'redux';
+const DEFAULT_PAGE = 0;
+const DEFAULT_HPP = '100';
 
 const PATH_BASE = 'https://hn.algolia.com/api/v1';
 const PATH_SEARCH = '/search';
 const PARAM_SEARCH = 'query=';
+const PARAM_PAGE = 'page=';
+const PARAM_HPP = 'hitsPerPage=';
 
-      //High order function example, ES5
+      //High order function example for client-side search, ES5
 /*
 function isSearched(searchTerm) {
   return function(item) {
@@ -18,25 +22,33 @@ function isSearched(searchTerm) {
     item.title.toLowerCase().includes(searchTerm.toLowerCase());
   }
 }
-*/
+
 
     //Same functionality as above, via ES6
 const isSearched = (searchTerm) => (item) =>
   !searchTerm || item.title.toLowerCase().includes(searchTerm.toLowerCase());
+*/
 
 /*
 search Component, note that => removes need for
 return block body. Something COULD be done prior to
 the return.
 */
-const Search = ({ value, onChange, children }) =>
-
-  <form>
-    { children }<input
+const Search = ({
+  value,
+  onChange,
+  onSubmit,
+  children
+}) =>
+  <form onSubmit={onSubmit}>
+    <input
       type="text"
       value={value}
       onChange={onChange}
     />
+    <button type="submit">
+      { children }
+    </button>
   </form>
 
 //table Component
@@ -44,7 +56,7 @@ const Search = ({ value, onChange, children }) =>
 const Table = ({ list, pattern, onDismiss }) =>
 
   <div className="table">
-    { list.filter(isSearched(pattern)).map(item =>
+    { list.map(item =>
       <div key={item.objectID} className="table-row">
         <span style={{ width: '40%' }}>
           <a href={item.url}>{item.title}</a>
@@ -88,43 +100,78 @@ class App extends Component {
     super(props);
 
     this.state = {
-      default: null,
+      defaults: null,
       searchTerm: DEFAULT_QUERY,
     };
 
+    //Bind needsToSearchTopstories() method to Component constructor
+    this.needsToSearchTopstories = this.needsToSearchTopstories.bind(this);
     //Bind setSearchTopstories() method to Component constructor
     this.setSearchTopstories = this.setSearchTopstories.bind(this);
-    //Bind fetchSeachTopstories() method to Component constructor
-    this.fetchSeachTopstories = this.fetchSeachTopstories.bind(this);
+    //Bind fetchSearchTopstories() method to Component constructor
+    this.fetchSearchTopstories = this.fetchSearchTopstories.bind(this);
     //Bind onDismiss() method to Component constructor
     this.onDismiss = this.onDismiss.bind(this);
     //Bind OnSearchChange() method to Component constructor
     this.onSearchChange = this.onSearchChange.bind(this);
+    // Bind onSearchSubmit() method to Component constructor
+    this.onSearchSubmit = this.onSearchSubmit.bind(this);
   }
 
+    // Define needsToSearchTopstories action
+  needsToSearchTopstories(searchTerm) {
+    return !this.state.results[searchTerm];
+  }
     //Define the setSearchTopstories() action for constructor.
   setSearchTopstories(result) {
-    this.setState({ result });
+    const { hits, page } = result;
+    const { searchKey, results } = this.state;
+
+    const oldHits = results && results[searchKey]
+      ? results[searchKey].hits
+      : [];
+
+    const updatedHits = [
+      ...oldHits,
+      ...hits
+    ];
+
+    this.setState({
+      results: {
+        ...results,
+        [searchKey]: { hits: updatedHits, page }
+      }
+    });
   }
 
-  fetchSeachTopstories(searchTerm) {
-    fetch(`${PATH_BASE}${PATH_SEARCH}${PARAM_SEARCH}${searchTerm}`)
+  componentDidMount() {
+    const { searchTerm } = this.state;
+    this.setState({ searchKey: searchTerm });
+    this.fetchSearchTopstories(searchTerm, DEFAULT_PAGE);
+  }
+
+  fetchSearchTopstories(searchTerm, page) {
+    fetch(`${PATH_BASE}${PATH_SEARCH}?${PARAM_SEARCH}${searchTerm}&${PARAM_PAGE}${page}&${PARAM_HPP}${DEFAULT_HPP}`)
       .then(response => response.json())
       .then(result => this.setSearchTopstories(result))
       .catch(e => e);
   }
 
-  componentDidMount() {
-    const { searchTerm } = this.state;
-    this.fetchSeachTopstories(searchTerm);
-  }
-
-
     //Define the onDismiss() action for constructor.
   onDismiss(id) {
+    const { searchKey, results } = this.state;
+    const { hits, page } = results[searchKey];
+
     const isNotId = item => item.objectID !== id;
-    const updatedList = this.state.list.filter(isNotId);
-    this.setState({ list: updatedList });
+
+    const updatedHits = hits.filter(isNotId);
+
+    this.setState({
+      results: {
+        ...results,
+        [searchKey]: { hits: updatedHits, page }
+      }
+    });
   }
 
     //Define the onSearchChange() for constructor
@@ -132,22 +179,61 @@ class App extends Component {
     this.setState({ searchTerm: event.target.value });
   }
 
+  // Define the onSearchSubmit() for constructor
+  onSearchSubmit(event) {
+    const { searchTerm } = this.state;
+    this.setState({ searchKey: searchTerm });
+
+    if (this.needsToSearchTopstories(searchTerm)) {
+      this.fetchSearchTopstories(searchTerm, DEFAULT_PAGE);
+    }
+
+    event.preventDefault();
+  }
+
     //Render() method from react library for Component
   render() {
 
-    const { searchTerm, list } = this.state;
+    const {
+      searchTerm,
+      results,
+      searchKey
+    } = this.state;
+
+    const page = (
+      results &&
+      results[searchKey] &&
+      results[searchKey].page
+    ) || 0;
+
+    const list = (
+      results &&
+      results[searchKey] &&
+      results[searchKey].hits
+    ) || [];
+
     return (
       <div className="page">
         <div className="interactions">
           <Search
             value={searchTerm}
-            onChange={this.onSearchChange}>Search
+            onChange={this.onSearchChange}
+            onSubmit={this.onSearchSubmit}
+          >
+            Search
           </Search>
+
           <Table
             list={list}
-            pattern={searchTerm}
             onDismiss={this.onDismiss}
           />
+
+          <div className="interactions">
+            <Button onClick={() => this.fetchSearchTopstories(searchKey, page + 1)}>
+              More
+            </Button>
+          </div>
+
         </div>
       </div>
     );
