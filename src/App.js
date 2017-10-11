@@ -5,6 +5,7 @@ import './App.css';
 /* API request broken down to url constants and default parameters for
 url composition flexibilty in the future
 */
+
 const DEFAULT_QUERY = 'redux';
 const DEFAULT_PAGE = 0;
 const DEFAULT_HPP = '100';
@@ -15,27 +16,38 @@ const PARAM_SEARCH = 'query=';
 const PARAM_PAGE = 'page=';
 const PARAM_HPP = 'hitsPerPage=';
 
-/*
-search Component, note that => removes need for
-return block body. Something COULD be done prior to
-the return.
-*/
-const Search = ({
-  value,
-  onChange,
-  onSubmit,
-  children
-}) =>
-  <form onSubmit={onSubmit}>
-    <input
-      type="text"
-      value={value}
-      onChange={onChange}
-    />
-    <button type="submit">
-      { children }
-    </button>
-  </form>
+//search Component
+
+class Search extends Component {
+
+  //focus lifecycle method
+  componentDidMount() {
+    this.input.focus();
+  }
+
+  render() {
+    const {
+      value,
+      onChange,
+      onSubmit,
+      children
+    } = this.props;
+
+    return (
+      <form onSubmit={onSubmit}>
+        <input
+          type="text"
+          value={value}
+          onChange={onChange}
+          ref={(node) => { this.input = node; }}
+        />
+        <button type="submit">
+          {children}
+        </button>
+      </form>
+    );
+  }
+}
 
 //Search property testing
 
@@ -47,7 +59,11 @@ Search.PropTypes = {
 
 }
 
-//table Component
+/*
+table Component, note that => removes need for
+return block body. Something COULD be done prior to
+the return.
+*/
 
 const Table = ({ list, onDismiss }) =>
 
