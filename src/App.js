@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+//import { sortBy } from 'lodash';
 import './App.css';
 
 /* API request broken down to url constants and default parameters for
@@ -135,7 +136,14 @@ Button.PropTypes = {
 // Loading Component
 
 const Loading = () =>
-  <div>Loading...</div>
+  <div>
+    <i className="fa fa-spinner" aria-hidden="true"></i>
+  </div>
+
+const withLoading = (Component) => ({ isLoading, ...rest }) =>
+  isLoading ? <Loading /> : <Component { ...rest } />
+
+const ButtonWithLoading = withLoading(Button);
 
 class App extends Component {
     //Add state(s), ES6 Object initializer shorthand
@@ -278,13 +286,11 @@ class App extends Component {
           />
 
           <div className="interactions">
-            { isLoading
-              ? <Loading />
-              : <Button
-                onClick={() => this.fetchSearchTopstories(searchKey, page + 1)}>
-                More
-              </Button>
-            }
+            <ButtonWithLoading
+              isLoading={isLoading}
+              onClick={() => this.fetchSearchTopstories(searchKey, page + 1)}>
+              More
+            </ButtonWithLoading>
           </div>
 
         </div>
