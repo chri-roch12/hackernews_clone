@@ -8,7 +8,7 @@ import './App.css';
 url composition flexibilty in the future
 */
 
-const DEFAULT_QUERY = 'reactjs';
+const DEFAULT_QUERY = 'reactJS';
 const DEFAULT_PAGE = 0;
 const DEFAULT_HPP = '100';
 
