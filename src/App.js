@@ -393,6 +393,8 @@ class App extends Component {
 
     return (
       <div className="page">
+        <h1 align="center">Hacker News Search</h1>
+        <h5 align="center">A React based SPA that searches for keywords using the Hacker News API.</h5>
         <div className="interactions">
           <Search
             value={searchTerm}
