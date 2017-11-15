@@ -28,6 +28,8 @@ const SORTS = {
   POINTS: list => sortBy(list, 'points').reverse(),
 }
 
+// COMPONENT CLEANUP and SEPARATION Branch
+
 //search Component
 
 class Search extends Component {
