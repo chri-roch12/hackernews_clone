@@ -4,6 +4,8 @@ This project is a light single page app using the reactJS framework. It interact
 
 The results are displayed in a table, which can then be sorted by several categories. This table includes pagination action, as well as client-side caching for optimal render speeds.
 
+Check it out here! https://hacker-news-search-clone.herokuapp.com/
+
 # Installation
 
 To spin up a local instance, fork/clone this repo, then enter this into your console: `npm start`. To run tests, enter `npm test` to run the test suite.
